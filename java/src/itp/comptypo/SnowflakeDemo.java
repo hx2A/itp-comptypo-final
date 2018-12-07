@@ -6,11 +6,11 @@ public class SnowflakeDemo extends HolidayAnimator {
 
     public static void main(String[] args) {
         String[] a = { "Happy Holidays" };
-        PApplet.runSketch(a, new SnowflakeDemo(false));
+        PApplet.runSketch(a, new SnowflakeDemo());
     }
 
-    public SnowflakeDemo(boolean makePrint) {
-        super(makePrint);
+    public SnowflakeDemo() {
+        super(false, "Hy");
     }
 
     public void initSprites() {

@@ -6,11 +6,11 @@ public class LetterDemo extends HolidayAnimator {
 
     public static void main(String[] args) {
         String[] a = { "Happy Holidays" };
-        PApplet.runSketch(a, new LetterDemo(false));
+        PApplet.runSketch(a, new LetterDemo());
     }
 
-    public LetterDemo(boolean makePrint) {
-        super(makePrint);
+    public LetterDemo() {
+        super("y");
     }
 
     public void initSprites() {

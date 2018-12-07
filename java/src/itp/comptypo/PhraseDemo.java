@@ -11,11 +11,11 @@ public class PhraseDemo extends HolidayAnimator {
 
     public static void main(String[] args) {
         String[] a = { "Happy Holidays" };
-        PApplet.runSketch(a, new PhraseDemo(false));
+        PApplet.runSketch(a, new PhraseDemo());
     }
 
-    public PhraseDemo(boolean makePrint) {
-        super(makePrint);
+    public PhraseDemo() {
+        super("Hiya.");
     }
 
     public void initSprites() {
