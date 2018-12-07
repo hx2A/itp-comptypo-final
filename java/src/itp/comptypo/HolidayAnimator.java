@@ -7,11 +7,12 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import processing.core.PApplet;
+import processing.core.PVector;
 import processing.data.JSONArray;
 import processing.data.JSONObject;
 import camera3D.Camera3D;
 
-public class HappyHolidays extends PApplet {
+public abstract class HolidayAnimator extends PApplet {
 
     private boolean makePrint;
     private float sizeFactor;
@@ -30,10 +31,6 @@ public class HappyHolidays extends PApplet {
     int backgroundColor;
 
     private static final String CHARACTERS = "Hiya.";
-    private static final String PHRASE1 = "Hi.ya";
-    private static final int[] PHRASE1_X_OFFSETS = new int[] { -100, -50, -50,
-            0, 50 };
-    private static final int[] PHRASE1_Y_OFFSETS = new int[] { 0, 0, -50, 0, 0 };
 
     private static final float X_NOISE_SCALING = 80;
     private static final float Y_NOISE_SCALING = 1000;
@@ -42,12 +39,7 @@ public class HappyHolidays extends PApplet {
 
     List<Sprite> sprites;
 
-    public static void main(String[] args) {
-        String[] a = { "Happy Holidays" };
-        PApplet.runSketch(a, new HappyHolidays(false));
-    }
-
-    public HappyHolidays(boolean makePrint) {
+    public HolidayAnimator(boolean makePrint) {
         this.p = this;
         this.makePrint = makePrint;
         if (makePrint) {
@@ -75,7 +67,7 @@ public class HappyHolidays extends PApplet {
         Camera3D camera3D = new Camera3D(this);
         camera3D.renderRegular();
         // camera3D.renderDuboisRedCyanAnaglyph().setDivergence(1f);
-        camera3D.reportStats();
+        // camera3D.reportStats();
         camera3D.setBackgroundColor(backgroundColor);
         frameRate(30);
 
@@ -91,19 +83,18 @@ public class HappyHolidays extends PApplet {
         sprites = new ArrayList<Sprite>();
     }
 
-    public void loadFontPathData() {
+    private void loadFontPathData() {
         fontPathData = new JSONObject();
         snowflakePathData = new JSONObject();
 
         for (char c : CHARACTERS.toCharArray()) {
-            // for (char c : CHARACTERS.toCharArray()) {
             System.out.println(c);
             JSONObject charData = loadJSONObject("font_paths/path_data_" + c
                     + ".json");
             fontPathData.setJSONObject("" + c, charData);
 
             Iterator<?> it = charData.keyIterator();
-            if (c == 'i') {
+            if (c == 'i' || c == '.') {
                 continue;
             }
             while (it.hasNext()) {
@@ -113,22 +104,18 @@ public class HappyHolidays extends PApplet {
                             getJSONObj(getJSONObj(charData, key), "100"));
                 }
             }
-
         }
         System.out.println(snowflakePathData.keys());
     }
+
+    public abstract void initSprites();
 
     public void preDraw() {
         // this is here because Processing rejects setup methods that take more
         // than 500 ms :(
         if (fontPathData == null) {
             loadFontPathData();
-            // sprites.add(new Snowflake((int)
-            // (random(snowflakePathData.size()))));
-            // sprites.add(new Snowflake(12));
-            // sprites.add(new Letter('y'));
-            sprites.add(new Phrase(PHRASE1, PHRASE1_X_OFFSETS,
-                    PHRASE1_Y_OFFSETS));
+            initSprites();
         }
 
         t += 0.01;
@@ -148,20 +135,18 @@ public class HappyHolidays extends PApplet {
         }
     }
 
-    abstract class Sprite {
+    private abstract class Sprite {
         protected boolean alive;
-        protected float xPos;
-        protected float yPos;
-        protected float zPos;
-        protected float xPosSalt;
-        protected float yPosSalt;
+        protected PVector pos;
+        protected float xSalt;
+        protected float ySalt;
         protected float rads;
         protected float scale;
 
         public Sprite() {
             alive = true;
-            xPosSalt = p.random(1000);
-            yPosSalt = p.random(1000);
+            xSalt = p.random(1000);
+            ySalt = p.random(1000);
         }
 
         public abstract void update();
@@ -170,9 +155,30 @@ public class HappyHolidays extends PApplet {
             return alive;
         }
 
+        protected PVector flakeMovement(PVector pos) {
+            PVector movement = new PVector();
+
+            movement.x = 50
+                    * sizeFactor
+                    * (noise(pos.x / X_NOISE_SCALING + xSalt, pos.y
+                            / X_NOISE_SCALING + ySalt, t) - 0.5f);
+            movement.y = -2
+                    * sizeFactor
+                    - 3
+                    * noise(pos.x / Y_NOISE_SCALING + xSalt, pos.y
+                            / Y_NOISE_SCALING + ySalt, t + 1000);
+
+            return movement;
+        }
+
+        protected float flakeRotation(PVector pos) {
+            return 0.3f * (noise(pos.x / RAD_NOISE_SCALING + xSalt, pos.y
+                    / RAD_NOISE_SCALING + ySalt, t) - 0.5f);
+        }
+
         public void draw(JSONArray paths, JSONObject stats) {
             p.pushMatrix();
-            p.translate(xPos, yPos, zPos);
+            p.translate(pos.x, pos.y, pos.z);
             p.rotate(rads);
             p.scale(scale * sizeFactor);
             p.translate(-getJSONFloatVal(stats, "centerX"),
@@ -197,37 +203,25 @@ public class HappyHolidays extends PApplet {
         public abstract void draw();
     }
 
-    class Snowflake extends Sprite {
-        public int num;
+    protected class Snowflake extends Sprite {
         private JSONArray paths;
         private JSONObject stats;
 
-        public Snowflake(int num) {
-            this.num = num;
+        public Snowflake() {
+            int num = (int) (p.random(snowflakePathData.size()));
             JSONObject pathData = getJSONObj(snowflakePathData, num);
             paths = getJSONArray(pathData, "paths");
             stats = getJSONObj(pathData, "stats");
 
-            xPos = width / 2;
-            yPos = height + 100;
-            zPos = 0;
+            pos = new PVector(width / 2f, height + 100, 0);
             scale = 1.8f;
         }
 
         public void update() {
-            xPos += 20
-                    * sizeFactor
-                    * (noise(xPos / X_NOISE_SCALING + xPosSalt, yPos
-                            / X_NOISE_SCALING + yPosSalt, t) - 0.5f);
-            yPos += -2
-                    * sizeFactor
-                    - 3
-                    * noise(xPos / Y_NOISE_SCALING + xPosSalt, yPos
-                            / Y_NOISE_SCALING + yPosSalt, t + 1000);
-            rads += 0.3 * (noise(xPos / RAD_NOISE_SCALING + xPosSalt, yPos
-                    / RAD_NOISE_SCALING + yPosSalt, t) - 0.5f);
+            pos.add(flakeMovement(pos));
+            rads += flakeRotation(pos);
 
-            if (yPos < -100) {
+            if (pos.y < -100) {
                 alive = false;
             }
         }
@@ -237,47 +231,34 @@ public class HappyHolidays extends PApplet {
         }
     }
 
-    class Letter extends Sprite {
-        public char c;
+    protected class Letter extends Sprite {
         private String snowflakeIndex;
         private JSONObject morphData;
+        protected PVector offset;
         private int state;
 
-        public Letter(char c) {
-            this.c = c;
-
-            xPos = width / 2;
-            yPos = height + 100;
-            zPos = 0;
+        public Letter(char c, int xOffset, int yOffset) {
+            offset = new PVector(xOffset, yOffset, 0);
+            pos = new PVector(width / 2, height + 100, 0);
             scale = 1.8f;
             state = 0;
 
+            // pick a random snowflake to morph into
             JSONObject charData = getJSONObj(fontPathData, "" + c);
             Set<?> snowflakeKeys = charData.keys();
             String[] possibleSnowflakes = (String[]) snowflakeKeys
                     .toArray(new String[snowflakeKeys.size()]);
-
             snowflakeIndex = possibleSnowflakes[(int) p
                     .random(possibleSnowflakes.length)];
             morphData = getJSONObj(charData, snowflakeIndex);
         }
 
         public void update() {
-
             state = min(state + 2, 100);
-            xPos += 50
-                    * sizeFactor
-                    * (noise(xPos / X_NOISE_SCALING + xPosSalt, yPos
-                            / X_NOISE_SCALING + yPosSalt, t) - 0.5f);
-            yPos += -2
-                    * sizeFactor
-                    - 3
-                    * noise(xPos / Y_NOISE_SCALING + xPosSalt, yPos
-                            / Y_NOISE_SCALING + yPosSalt, t + 1000);
-            rads += 0.3 * (noise(xPos / RAD_NOISE_SCALING + xPosSalt, yPos
-                    / RAD_NOISE_SCALING + yPosSalt, t) - 0.5f);
+            pos.add(flakeMovement(pos));
+            rads += flakeRotation(pos);
 
-            if (yPos < -100) {
+            if (pos.y < -100) {
                 alive = false;
             }
         }
@@ -292,23 +273,18 @@ public class HappyHolidays extends PApplet {
         }
     }
 
-    private class Phrase extends Sprite {
+    protected class Phrase extends Sprite {
         private List<Letter> letters;
-        private int[] xOffsets;
-        private int[] yOffsets;
 
         public Phrase(String phrase, int[] xOffsets, int[] yOffsets) {
-            this.xOffsets = xOffsets;
-            this.yOffsets = yOffsets;
             alive = true;
 
-            xPos = width / 2;
-            yPos = height + 100;
-            zPos = 0;
+            pos = new PVector(width / 2, height + 100, 0);
 
             letters = new ArrayList<Letter>();
             for (int i = 0; i < phrase.length(); i++) {
-                letters.add(new Letter(phrase.charAt(i)));
+                letters.add(new Letter(phrase.charAt(i), xOffsets[i],
+                        yOffsets[i]));
             }
         }
 
@@ -320,19 +296,13 @@ public class HappyHolidays extends PApplet {
         }
 
         public void update() {
-            xPos += 0;
-            yPos += -3 * sizeFactor;
-            zPos += 0;
+            pos.y += -2 * sizeFactor;
 
-            for (int i = 0; i < letters.size(); i++) {
-                // set letter positions directly
-                Letter letter = letters.get(i);
-                letter.xPos = xPos + xOffsets[i];
-                letter.yPos = yPos + yOffsets[i];
-                letter.zPos = zPos;
+            for (Letter letter : letters) {
+                letter.pos = PVector.add(pos, letter.offset);
             }
 
-            if (yPos < LETTER_DISBAND_LEVEL * height) {
+            if (pos.y < LETTER_DISBAND_LEVEL * height) {
                 disband();
             }
         }
