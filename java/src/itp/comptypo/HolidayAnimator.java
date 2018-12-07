@@ -16,11 +16,9 @@ public abstract class HolidayAnimator extends PApplet {
 
     private boolean makePrint;
     private float sizeFactor;
-    private float speedFactor;
     private int w;
     private int h;
     private float t;
-    private float dt;
 
     private PApplet p;
 
@@ -49,8 +47,6 @@ public abstract class HolidayAnimator extends PApplet {
             sizeFactor = 0.4f; // 0.8f;
             t = 0;
         }
-
-        speedFactor = 3f;
 
         w = (int) (1795 * sizeFactor);
         h = (int) (1287 * sizeFactor);

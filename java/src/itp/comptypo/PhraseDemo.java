@@ -19,10 +19,6 @@ public class PhraseDemo extends HolidayAnimator {
     }
 
     public void initSprites() {
-        // sprites.add(new Snowflake((int)
-        // (random(snowflakePathData.size()))));
-        sprites.add(new Snowflake());
-        // sprites.add(new Letter('y'));
         sprites.add(new Phrase(PHRASE1, PHRASE1_X_OFFSETS,
                 PHRASE1_Y_OFFSETS));
     }
