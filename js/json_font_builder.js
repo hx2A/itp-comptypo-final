@@ -1,4 +1,3 @@
-
 let ONE_CONTOUR_SNOWFLAKES = "abrEQR0#$%&";
 let TWO_CONTOUR_SNOWFLAKES = "cxF16";
 
@@ -10,7 +9,7 @@ let snowflakeFont;
 let boundingBox;
 let twoSolids;
 
-let letters = "Hapyolids";
+let letters = "Hapyolids.";
 
 
 // ***********************************************************
@@ -104,16 +103,29 @@ function setup() {
 }
 
 function constructCharacterMorphs(character) {
+  let normalPath;
+  let snowflakeSize = 150;
+
   // first get the path for the selected character
-  let normalPath = normalFont.getPath(character, 0, 0, 100);
+  if (character == '.') {
+    normalPath = normalFont.getPath('i', 0, 0, 100);
+  } else {
+    normalPath = normalFont.getPath(character, 0, 0, 100);
+  }
   boundingBox = normalPath.getBoundingBox();
   let out = convertCommandsToStrings(normalPath);
   let normalStrings = out[0];
-  twoSolids = normalStrings.length == 2 && out[1][1];
+  if (character == 'i') {
+    normalStrings = [normalStrings[0]];
+    snowflakeSize = 120;
+  } else if (character == '.') {
+    normalStrings = [normalStrings[1]];
+    snowflakeSize = 60;
+  }
 
   // what is the list of snowflakes that are suitable for this character?
   let snowflakes;
-  if (normalStrings.length == 1 || twoSolids) {
+  if (normalStrings.length == 1) {
     snowflakes = ONE_CONTOUR_SNOWFLAKES;
   } else if (normalStrings.length == 2) {
     snowflakes = TWO_CONTOUR_SNOWFLAKES;
@@ -123,15 +135,13 @@ function constructCharacterMorphs(character) {
   }
 
   let result = {};
-  result.twoSolids = twoSolids;
-  result.snowflakes = {}
 
   // for each snowflake get every possible morph with the character
   for (let i = 0; i < snowflakes.length; i++) {
     snowflake = snowflakes[i];
     console.log(`character=${character} snowflake=${snowflake}`);
 
-    let snowflakeStrings = convertCommandsToStrings(snowflakeFont.getPath(snowflake, 0, 0, 150))[0];
+    let snowflakeStrings = convertCommandsToStrings(snowflakeFont.getPath(snowflake, 0, 0, snowflakeSize))[0];
 
     let interpolators;
 
@@ -159,7 +169,7 @@ function constructCharacterMorphs(character) {
         return interpolator(t / 100);
       });
 
-      // calculate the bounding box and the center, for animation purposes
+      // store the bounding box center, for animation purposes
       let stats = {};
       stats.maxX = -99999;
       stats.minX = 99999;
@@ -178,7 +188,7 @@ function constructCharacterMorphs(character) {
       snowflake_data[t].stats = stats;
     }
 
-    result.snowflakes[(ONE_CONTOUR_SNOWFLAKES + TWO_CONTOUR_SNOWFLAKES).indexOf(snowflake)] = snowflake_data;
+    result[(ONE_CONTOUR_SNOWFLAKES + TWO_CONTOUR_SNOWFLAKES).indexOf(snowflake)] = snowflake_data;
   }
 
   return result;

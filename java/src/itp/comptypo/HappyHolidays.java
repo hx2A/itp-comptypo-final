@@ -29,8 +29,11 @@ public class HappyHolidays extends PApplet {
     int fillColor;
     int backgroundColor;
 
-    private static final String PHRASE1 = "Hiya";
-    private static final int[] PHRASE1_OFFSETS = new int[] { -100, -50, 0, 50 };
+    private static final String CHARACTERS = "Hiya.";
+    private static final String PHRASE1 = "Hi.ya";
+    private static final int[] PHRASE1_X_OFFSETS = new int[] { -100, -50, -50,
+            0, 50 };
+    private static final int[] PHRASE1_Y_OFFSETS = new int[] { 0, 0, -50, 0, 0 };
 
     private static final float X_NOISE_SCALING = 80;
     private static final float Y_NOISE_SCALING = 1000;
@@ -92,26 +95,22 @@ public class HappyHolidays extends PApplet {
         fontPathData = new JSONObject();
         snowflakePathData = new JSONObject();
 
-        for (char c : "Hayi".toCharArray()) {
-            // for (char c : "Hapyolids".toCharArray()) {
+        for (char c : CHARACTERS.toCharArray()) {
+            // for (char c : CHARACTERS.toCharArray()) {
             System.out.println(c);
             JSONObject charData = loadJSONObject("font_paths/path_data_" + c
                     + ".json");
             fontPathData.setJSONObject("" + c, charData);
 
-            Iterator<?> it = getJSONObj(charData, "snowflakes").keyIterator();
+            Iterator<?> it = charData.keyIterator();
             if (c == 'i') {
                 continue;
             }
             while (it.hasNext()) {
                 String key = (String) it.next();
                 if (!snowflakePathData.hasKey(key)) {
-                    snowflakePathData.setJSONObject(
-                            key,
-                            getJSONObj(
-                                    getJSONObj(
-                                            getJSONObj(charData, "snowflakes"),
-                                            key), "100"));
+                    snowflakePathData.setJSONObject(key,
+                            getJSONObj(getJSONObj(charData, key), "100"));
                 }
             }
 
@@ -128,7 +127,8 @@ public class HappyHolidays extends PApplet {
             // (random(snowflakePathData.size()))));
             // sprites.add(new Snowflake(12));
             // sprites.add(new Letter('y'));
-            sprites.add(new Phrase(PHRASE1, PHRASE1_OFFSETS));
+            sprites.add(new Phrase(PHRASE1, PHRASE1_X_OFFSETS,
+                    PHRASE1_Y_OFFSETS));
         }
 
         t += 0.01;
@@ -157,7 +157,6 @@ public class HappyHolidays extends PApplet {
         protected float yPosSalt;
         protected float rads;
         protected float scale;
-        protected boolean twoSolids;
 
         public Sprite() {
             alive = true;
@@ -179,7 +178,7 @@ public class HappyHolidays extends PApplet {
             p.translate(-getJSONFloatVal(stats, "centerX"),
                     -getJSONFloatVal(stats, "centerY"), 0);
             for (int i = 0; i < paths.size(); i++) {
-                if (i == 0 || twoSolids) {
+                if (i == 0) {
                     p.fill(fillColor);
                 } else {
                     p.fill(backgroundColor);
@@ -220,12 +219,12 @@ public class HappyHolidays extends PApplet {
                     * sizeFactor
                     * (noise(xPos / X_NOISE_SCALING + xPosSalt, yPos
                             / X_NOISE_SCALING + yPosSalt, t) - 0.5f);
-            yPos -= 3
+            yPos += -2
                     * sizeFactor
-                    + 2
-                    * (noise(xPos / Y_NOISE_SCALING + xPosSalt, yPos
-                            / Y_NOISE_SCALING + yPosSalt, t + 1000) - 0.5f);
-            rads += 0.1 * (noise(xPos / RAD_NOISE_SCALING + xPosSalt, yPos
+                    - 3
+                    * noise(xPos / Y_NOISE_SCALING + xPosSalt, yPos
+                            / Y_NOISE_SCALING + yPosSalt, t + 1000);
+            rads += 0.3 * (noise(xPos / RAD_NOISE_SCALING + xPosSalt, yPos
                     / RAD_NOISE_SCALING + yPosSalt, t) - 0.5f);
 
             if (yPos < -100) {
@@ -254,15 +253,13 @@ public class HappyHolidays extends PApplet {
             state = 0;
 
             JSONObject charData = getJSONObj(fontPathData, "" + c);
-            twoSolids = getJSONBooleanVal(charData, "twoSolids");
-            Set<?> snowflakeKeys = getJSONObj(charData, "snowflakes").keys();
+            Set<?> snowflakeKeys = charData.keys();
             String[] possibleSnowflakes = (String[]) snowflakeKeys
                     .toArray(new String[snowflakeKeys.size()]);
 
             snowflakeIndex = possibleSnowflakes[(int) p
                     .random(possibleSnowflakes.length)];
-            morphData = getJSONObj(getJSONObj(charData, "snowflakes"),
-                    snowflakeIndex);
+            morphData = getJSONObj(charData, snowflakeIndex);
         }
 
         public void update() {
@@ -272,12 +269,12 @@ public class HappyHolidays extends PApplet {
                     * sizeFactor
                     * (noise(xPos / X_NOISE_SCALING + xPosSalt, yPos
                             / X_NOISE_SCALING + yPosSalt, t) - 0.5f);
-            yPos -= 3
+            yPos += -2
                     * sizeFactor
-                    + 2
-                    * (noise(xPos / Y_NOISE_SCALING + xPosSalt, yPos
-                            / Y_NOISE_SCALING + yPosSalt, t + 1000) - 0.5f);
-            rads += 0.1 * (noise(xPos / RAD_NOISE_SCALING + xPosSalt, yPos
+                    - 3
+                    * noise(xPos / Y_NOISE_SCALING + xPosSalt, yPos
+                            / Y_NOISE_SCALING + yPosSalt, t + 1000);
+            rads += 0.3 * (noise(xPos / RAD_NOISE_SCALING + xPosSalt, yPos
                     / RAD_NOISE_SCALING + yPosSalt, t) - 0.5f);
 
             if (yPos < -100) {
@@ -287,11 +284,7 @@ public class HappyHolidays extends PApplet {
 
         public void draw() {
             JSONObject data;
-            if (c == 'i' && state == 100) {
-                data = getJSONObj(snowflakePathData, snowflakeIndex);
-            } else {
-                data = getJSONObj(morphData, Integer.toString(state));
-            }
+            data = getJSONObj(morphData, Integer.toString(state));
             JSONArray paths = getJSONArray(data, "paths");
             JSONObject stats = getJSONObj(data, "stats");
 
@@ -301,10 +294,12 @@ public class HappyHolidays extends PApplet {
 
     private class Phrase extends Sprite {
         private List<Letter> letters;
-        private int[] offsets;
+        private int[] xOffsets;
+        private int[] yOffsets;
 
-        public Phrase(String phrase, int[] offsets) {
-            this.offsets = offsets;
+        public Phrase(String phrase, int[] xOffsets, int[] yOffsets) {
+            this.xOffsets = xOffsets;
+            this.yOffsets = yOffsets;
             alive = true;
 
             xPos = width / 2;
@@ -313,11 +308,7 @@ public class HappyHolidays extends PApplet {
 
             letters = new ArrayList<Letter>();
             for (int i = 0; i < phrase.length(); i++) {
-                Letter newLetter = new Letter(phrase.charAt(i));
-                newLetter.xPos = xPos + offsets[i];
-                newLetter.yPos = yPos;
-                newLetter.zPos = zPos;
-                letters.add(newLetter);
+                letters.add(new Letter(phrase.charAt(i)));
             }
         }
 
@@ -329,15 +320,15 @@ public class HappyHolidays extends PApplet {
         }
 
         public void update() {
-            yPos -= 3 * sizeFactor;
             xPos += 0;
+            yPos += -3 * sizeFactor;
             zPos += 0;
 
             for (int i = 0; i < letters.size(); i++) {
                 // set letter positions directly
                 Letter letter = letters.get(i);
-                letter.xPos = xPos + offsets[i];
-                letter.yPos = yPos;
+                letter.xPos = xPos + xOffsets[i];
+                letter.yPos = yPos + yOffsets[i];
                 letter.zPos = zPos;
             }
 
@@ -371,9 +362,5 @@ public class HappyHolidays extends PApplet {
 
     private float getJSONFloatVal(JSONObject obj, String key) {
         return ((Double) obj.get(key)).floatValue();
-    }
-
-    private boolean getJSONBooleanVal(JSONObject obj, String key) {
-        return ((Boolean) obj.get(key)).booleanValue();
     }
 }
