@@ -26,7 +26,6 @@ public abstract class HolidayAnimator extends PApplet {
     private JSONObject fontPathData;
     private JSONObject snowflakePathData;
 
-    int fillColor;
     int backgroundColor;
 
     private static final float X_NOISE_SCALING = 400;
@@ -64,7 +63,6 @@ public abstract class HolidayAnimator extends PApplet {
 
     public void setup() {
         backgroundColor = color(240, 240, 240);
-        fillColor = color(192);
         t = 0;
 
         Camera3D camera3D = new Camera3D(this);
@@ -76,10 +74,6 @@ public abstract class HolidayAnimator extends PApplet {
 
         noiseSeed(0);
         randomSeed(0);
-
-        this.fill(fillColor);
-        this.stroke(0);
-        this.strokeWeight(2);
 
         shapes = new ArrayList<Shape>();
     }
@@ -155,12 +149,19 @@ public abstract class HolidayAnimator extends PApplet {
         protected float ySalt;
         protected float rads;
         protected float scale;
+        protected int fillColor;
+        protected int strokeColor;
+        protected int alpha;
 
         public Shape() {
             alive = true;
             xSalt = p.random(10000);
             ySalt = p.random(10000);
             scale = 1;
+
+            fillColor = color(192);
+            strokeColor = color(0);
+            alpha = 128;
         }
 
         public abstract void update();
@@ -198,6 +199,10 @@ public abstract class HolidayAnimator extends PApplet {
 
         public void draw(JSONArray paths, JSONObject stats) {
             p.pushMatrix();
+            p.pushStyle();
+            p.fill(fillColor, alpha);
+            p.stroke(strokeColor, alpha);
+            p.strokeWeight(2);
             p.translate(pos.x, pos.y, pos.z);
             p.rotate(rads);
             p.scale(scale * sizeFactor);
@@ -230,6 +235,7 @@ public abstract class HolidayAnimator extends PApplet {
                 p.endContour();
             }
             p.endShape();
+            p.popStyle();
             p.popMatrix();
         }
 
@@ -278,6 +284,12 @@ public abstract class HolidayAnimator extends PApplet {
 
         public void draw() {
             p.pushMatrix();
+            p.pushStyle();
+
+            p.fill(fillColor);
+            p.stroke(strokeColor);
+            p.strokeWeight(4);
+
             p.translate(pos.x, pos.y, pos.z);
             p.rotate(rads);
             p.scale(scale * sizeFactor);
@@ -300,6 +312,7 @@ public abstract class HolidayAnimator extends PApplet {
 
             p.endShape();
 
+            p.popStyle();
             p.popMatrix();
         }
 
@@ -385,17 +398,20 @@ public abstract class HolidayAnimator extends PApplet {
         private boolean animate;
         private boolean pause;
         private int pauseCountdown;
+        private int fadeTime;
 
         public Phrase(String phrase, int[] xOffsets, int[] yOffsets) {
-            this(phrase, xOffsets, yOffsets, (int) (1.1f * height), 2f);
+            this(phrase, xOffsets, yOffsets, (int) (1.1f * height), 2f,
+                    Integer.MAX_VALUE);
         }
 
         public Phrase(String phrase, int[] xOffsets, int[] yOffsets,
-                int yStart, float startSpeed) {
+                int yStart, float startSpeed, int fadeTime) {
             pos = new PVector(width / 2, yStart, 0);
             moveSpeed = startSpeed;
             animate = startSpeed != 0f;
             pause = false;
+            this.fadeTime = fadeTime;
 
             letters = new ArrayList<Letter>();
             for (int i = 0; i < phrase.length(); i++) {
@@ -429,6 +445,16 @@ public abstract class HolidayAnimator extends PApplet {
                     }
                 }
                 pos.y += -moveSpeed * sizeFactor;
+            }
+
+            if (t > fadeTime) {
+                alpha -= 2;
+                if (alpha < 0) {
+                    alive = false;
+                }
+                for (Letter letter : letters) {
+                    letter.alpha = alpha;
+                }
             }
 
             for (Letter letter : letters) {
