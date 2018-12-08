@@ -160,7 +160,7 @@ function constructCharacterMorphs(character) {
 
     // extract the relevant data from the interpolators
     let snowflake_data = {};
-    for (let t = 0; t <= 100; t++) {
+    for (let t = 0; t <= 100; t += 2) {
       console.log(`character=${character} snowflake=${snowflake} t=${t}`);
 
       // this gets the raw path coordinates
