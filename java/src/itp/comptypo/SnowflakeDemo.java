@@ -13,7 +13,11 @@ public class SnowflakeDemo extends HolidayAnimator {
         super(false, "Hy");
     }
 
-    public void initSprites() {
-        sprites.add(new Snowflake());
+    public void addSprites(int t) {
+        if (t == 0) {
+            for (int i = 0; i < 20; i++) {
+                shapes.add(new Snowflake(random(width)));
+            }
+        }
     }
 }

@@ -1,6 +1,7 @@
 package itp.comptypo;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -14,10 +15,10 @@ import camera3D.Camera3D;
 
 public abstract class HolidayAnimator extends PApplet {
 
-    private float sizeFactor;
+    protected float sizeFactor;
     private int w;
     private int h;
-    private float t;
+    private int t;
     private float dt;
 
     private PApplet p;
@@ -29,34 +30,35 @@ public abstract class HolidayAnimator extends PApplet {
     int fillColor;
     int backgroundColor;
 
-    private static final float X_NOISE_SCALING = 80;
-    private static final float Y_NOISE_SCALING = 1000;
+    private static final float X_NOISE_SCALING = 400;
+    private static final float Y_NOISE_SCALING = 400;
+    private static final float Z_NOISE_SCALING = 400;
     private static final float RAD_NOISE_SCALING = 400;
     private static final float LETTER_DISBAND_LEVEL = 0.75f;
 
-    List<Sprite> sprites;
+    List<Shape> shapes;
 
     public HolidayAnimator(String charactersToLoad) {
-        this(false, charactersToLoad, 0.01f);
+        this(true, charactersToLoad, 1);
     }
 
-    public HolidayAnimator(String charactersToLoad, float dt) {
-        this(false, charactersToLoad, dt);
+    public HolidayAnimator(String charactersToLoad, int dt) {
+        this(true, charactersToLoad, dt);
     }
 
-    public HolidayAnimator(boolean makePrint, String charactersToLoad) {
-        this(makePrint, charactersToLoad, 0.01f);
+    public HolidayAnimator(boolean reducedSize, String charactersToLoad) {
+        this(reducedSize, charactersToLoad, 1);
     }
 
-    public HolidayAnimator(boolean makePrint, String charactersToLoad, float dt) {
+    public HolidayAnimator(boolean reducedSize, String charactersToLoad, int dt) {
         this.p = this;
         this.charactersToLoad = charactersToLoad;
         this.dt = dt;
 
-        if (makePrint) {
-            sizeFactor = 0.83f;
+        if (reducedSize) {
+            sizeFactor = 0.8f;
         } else {
-            sizeFactor = 0.4f; // 0.8f;
+            sizeFactor = 1;
         }
 
         w = (int) (1795 * sizeFactor);
@@ -74,8 +76,8 @@ public abstract class HolidayAnimator extends PApplet {
 
         Camera3D camera3D = new Camera3D(this);
         camera3D.renderRegular();
+        camera3D.reportStats();
         // camera3D.renderDuboisRedCyanAnaglyph().setDivergence(1f);
-        // camera3D.reportStats();
         camera3D.setBackgroundColor(backgroundColor);
         frameRate(30);
 
@@ -86,7 +88,7 @@ public abstract class HolidayAnimator extends PApplet {
         this.stroke(0);
         this.strokeWeight(2);
 
-        sprites = new ArrayList<Sprite>();
+        shapes = new ArrayList<Shape>();
     }
 
     private void loadFontPathData() {
@@ -112,34 +114,48 @@ public abstract class HolidayAnimator extends PApplet {
         }
     }
 
-    public abstract void initSprites();
+    public abstract void addSprites(int t);
+
+    public void initExtras() {
+
+    }
+
+    public void drawExtra() {
+
+    }
 
     public void preDraw() {
         // this is here because Processing rejects setup methods that take more
         // than 500 ms :(
         if (fontPathData == null) {
             loadFontPathData();
-            initSprites();
+            initExtras();
+        } else {
+            t += dt;
         }
 
-        t += 0.01;
+        addSprites(t);
 
         // filter out the dead sprites
-        sprites = sprites.stream().filter(s -> s.isAlive())
+        shapes = shapes.stream().filter(s -> s.isAlive())
                 .collect(Collectors.toList());
 
-        for (int i = 0; i < sprites.size(); i++) {
-            sprites.get(i).update();
+        for (int i = 0; i < shapes.size(); i++) {
+            shapes.get(i).update();
         }
+        
+        Collections.sort(shapes);
     }
 
     public void draw() {
-        for (Sprite s : sprites) {
+        for (Shape s : shapes) {
             s.draw();
         }
+
+        drawExtra();
     }
 
-    private abstract class Sprite {
+    private abstract class Shape implements Comparable<Shape> {
         protected boolean alive;
         protected PVector pos;
         protected float xSalt;
@@ -147,10 +163,10 @@ public abstract class HolidayAnimator extends PApplet {
         protected float rads;
         protected float scale;
 
-        public Sprite() {
+        public Shape() {
             alive = true;
-            xSalt = p.random(1000);
-            ySalt = p.random(1000);
+            xSalt = p.random(10000);
+            ySalt = p.random(10000);
         }
 
         public abstract void update();
@@ -162,27 +178,28 @@ public abstract class HolidayAnimator extends PApplet {
         protected PVector flakeMovement(PVector pos) {
             PVector movement = new PVector();
 
-            movement.x = 5000
-                    * dt
-                    * sizeFactor
-                    * (noise(pos.x / X_NOISE_SCALING + xSalt, pos.y
-                            / X_NOISE_SCALING + ySalt, t) - 0.5f);
-            movement.y = -200
-                    * dt
-                    * sizeFactor
-                    - 300
-                    * dt
-                    * noise(pos.x / Y_NOISE_SCALING + xSalt, pos.y
-                            / Y_NOISE_SCALING + ySalt, t + 1000);
+            movement.x = (30f * dt * sizeFactor)
+                    * (noise(sizeFactor * pos.x / X_NOISE_SCALING + xSalt,
+                            sizeFactor * pos.y / X_NOISE_SCALING + ySalt, t
+                                    / X_NOISE_SCALING) - 0.5f);
+            movement.y = (-1f * dt * sizeFactor)
+                    - (6f * dt * sizeFactor)
+                    * noise(sizeFactor * pos.x / Y_NOISE_SCALING + xSalt,
+                            sizeFactor * pos.y / Y_NOISE_SCALING + ySalt, t
+                                    / Y_NOISE_SCALING + 1000);
+            movement.z = (10f * dt * sizeFactor)
+                    * (noise(sizeFactor * pos.x / Z_NOISE_SCALING + xSalt,
+                            sizeFactor * pos.y / Z_NOISE_SCALING + ySalt, t
+                                    / Z_NOISE_SCALING) - 0.5f);
 
             return movement;
         }
 
         protected float flakeRotation(PVector pos) {
-            return 30
-                    * dt
-                    * (noise(pos.x / RAD_NOISE_SCALING + xSalt, pos.y
-                            / RAD_NOISE_SCALING + ySalt, t) - 0.5f);
+            return (0.3f * dt)
+                    * (noise(sizeFactor * pos.x / RAD_NOISE_SCALING + xSalt,
+                            sizeFactor * pos.y / RAD_NOISE_SCALING + ySalt, t
+                                    / RAD_NOISE_SCALING) - 0.5f);
         }
 
         public void draw(JSONArray paths, JSONObject stats) {
@@ -204,33 +221,48 @@ public abstract class HolidayAnimator extends PApplet {
                     int[] coords = getJSONArray(path, j).getIntArray();
                     p.vertex(coords[0], coords[1], 0);
                 }
+                // loop back to beginning
+                int[] coords = getJSONArray(path, 0).getIntArray();
+                p.vertex(coords[0], coords[1], 0);
                 p.endShape();
             }
             p.popMatrix();
         }
 
         public abstract void draw();
+
+        public int compareTo(Shape s) {
+            if (pos.z > s.pos.z)
+                return 1;
+            else if (pos.z < s.pos.z)
+                return -1;
+            return 0;
+        }
     }
 
-    protected class Snowflake extends Sprite {
+    protected class Snowflake extends Shape {
         private JSONArray paths;
         private JSONObject stats;
 
         public Snowflake() {
+            this(width / 2f);
+        }
+
+        public Snowflake(float startX) {
             int num = (int) (p.random(snowflakePathData.size()));
             JSONObject pathData = getJSONObj(snowflakePathData, num);
             paths = getJSONArray(pathData, "paths");
             stats = getJSONObj(pathData, "stats");
 
-            pos = new PVector(width / 2f, height + 100, 0);
-            scale = 1.8f;
+            pos = new PVector(width / 2f, 1.1f * height, 0);
+            scale = p.random(0.8f, 1.5f);
         }
 
         public void update() {
             pos.add(flakeMovement(pos));
             rads += flakeRotation(pos);
 
-            if (pos.y < -100) {
+            if (pos.y < -500) {
                 alive = false;
             }
         }
@@ -240,16 +272,16 @@ public abstract class HolidayAnimator extends PApplet {
         }
     }
 
-    protected class Letter extends Sprite {
+    protected class Letter extends Shape {
         private String snowflakeIndex;
         private JSONObject morphData;
         protected PVector offset;
         private int state;
 
-        public Letter(char c, int xOffset, int yOffset) {
-            offset = new PVector(xOffset, yOffset, 0);
-            pos = new PVector(width / 2, height + 100, 0);
-            scale = 1.8f;
+        public Letter(char c, float xOffset, float yOffset, float zOffset) {
+            offset = new PVector(xOffset, yOffset, zOffset);
+            pos = new PVector(width / 2, 1.1f * height, 0);
+            scale = 1.5f;
             state = 0;
 
             // pick a random snowflake to morph into
@@ -267,7 +299,7 @@ public abstract class HolidayAnimator extends PApplet {
             pos.add(flakeMovement(pos));
             rads += flakeRotation(pos);
 
-            if (pos.y < -100) {
+            if (pos.y < -500) {
                 alive = false;
             }
         }
@@ -282,11 +314,11 @@ public abstract class HolidayAnimator extends PApplet {
         }
     }
 
-    protected class Phrase extends Sprite {
+    protected class Phrase extends Shape {
         private List<Letter> letters;
 
         public Phrase(String phrase, int[] xOffsets, int[] yOffsets) {
-            this(phrase, xOffsets, yOffsets, height + 100);
+            this(phrase, xOffsets, yOffsets, (int) (1.1f * height));
         }
 
         public Phrase(String phrase, int[] xOffsets, int[] yOffsets, int yStart) {
@@ -297,22 +329,24 @@ public abstract class HolidayAnimator extends PApplet {
             letters = new ArrayList<Letter>();
             for (int i = 0; i < phrase.length(); i++) {
                 letters.add(new Letter(phrase.charAt(i), xOffsets[i],
-                        yOffsets[i]));
+                        yOffsets[i], -i / 100f));
             }
+            Collections.sort(letters);
         }
 
         private void disband() {
             for (Letter letter : letters) {
-                sprites.add(letter);
+                shapes.add(letter);
             }
             alive = false;
         }
 
         public void update() {
-            pos.y += -200 * dt * sizeFactor;
+            pos.y += -2 * dt * sizeFactor;
 
             for (Letter letter : letters) {
-                letter.pos = PVector.add(pos, letter.offset);
+                letter.pos = PVector.add(pos,
+                        PVector.mult(letter.offset, sizeFactor));
             }
 
             if (pos.y < LETTER_DISBAND_LEVEL * height) {
