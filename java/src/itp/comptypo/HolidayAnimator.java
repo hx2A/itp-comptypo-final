@@ -50,13 +50,14 @@ public abstract class HolidayAnimator extends PApplet {
         this(reducedSize, charactersToLoad, 1);
     }
 
-    public HolidayAnimator(boolean reducedSize, String charactersToLoad, float dt) {
+    public HolidayAnimator(boolean reducedSize, String charactersToLoad,
+            float dt) {
         this.p = this;
         this.charactersToLoad = charactersToLoad;
         this.dt = dt;
 
         if (reducedSize) {
-            sizeFactor = 0.8f;
+            sizeFactor = 0.75f; // 0.8f;
         } else {
             sizeFactor = 1;
         }
@@ -75,9 +76,9 @@ public abstract class HolidayAnimator extends PApplet {
         t = 0;
 
         Camera3D camera3D = new Camera3D(this);
-        // camera3D.renderRegular();
+//        camera3D.renderRegular();
         camera3D.reportStats();
-        camera3D.renderDuboisRedCyanAnaglyph().setDivergence(1f);
+         camera3D.renderDuboisRedCyanAnaglyph().setDivergence(1f);
         camera3D.setBackgroundColor(backgroundColor);
         frameRate(30);
 
@@ -148,7 +149,6 @@ public abstract class HolidayAnimator extends PApplet {
     }
 
     public void draw() {
-        System.out.println("Drawing " + shapes.size() + " shapes");
         for (Shape s : shapes) {
             s.draw();
         }
@@ -168,6 +168,7 @@ public abstract class HolidayAnimator extends PApplet {
             alive = true;
             xSalt = p.random(10000);
             ySalt = p.random(10000);
+            scale = 1;
         }
 
         public abstract void update();
@@ -249,6 +250,51 @@ public abstract class HolidayAnimator extends PApplet {
                 return -1;
             return 0;
         }
+    }
+
+    protected class SnowPile extends Shape {
+
+        private float bumpPosition;
+        private float bumpHeight;
+        
+        public SnowPile(float yPos, float zPos, float bumpPosition, float bumpHeight) {
+            this.bumpPosition = bumpPosition;
+            this.bumpHeight = bumpHeight;
+            pos = new PVector(width / 2, yPos + height, zPos);
+            scale = 0.9f;
+        }
+
+        public void update() {
+
+        }
+
+        public void draw() {
+            p.pushMatrix();
+            p.translate(pos.x, pos.y, pos.z);
+            p.rotate(rads);
+            p.scale(scale * sizeFactor);
+
+            p.beginShape();
+            p.vertex(-width, -0.1f * height, 0);
+
+            // curve
+            p.curveVertex(-width, -0.1f * height, 0);
+            p.curveVertex(-0.8f * width, -0.15f * height, 0);
+            p.curveVertex(bumpPosition * width, -bumpHeight * height, 0);
+            p.curveVertex(0.8f * width, -0.15f * height, 0);
+            p.curveVertex(width, -0.1f * height, 0);
+
+            // rest of shape
+            p.vertex(width, -0.1f * height, 0);
+            p.vertex(width, 0.5f * height, 0);
+            p.vertex(-width, 0.5f * height, 0);
+            p.vertex(-width, -0.1f * height, 0);
+
+            p.endShape();
+
+            p.popMatrix();
+        }
+
     }
 
     protected class Snowflake extends Shape {
@@ -340,7 +386,8 @@ public abstract class HolidayAnimator extends PApplet {
             letters = new ArrayList<Letter>();
             for (int i = 0; i < phrase.length(); i++) {
                 letters.add(new Letter(phrase.charAt(i), xOffsets[i],
-                        yOffsets[i], 20 * (i / ((float) phrase.length()) - 0.5f)));
+                        yOffsets[i],
+                        20 * (i / ((float) phrase.length()) - 0.5f)));
             }
         }
 

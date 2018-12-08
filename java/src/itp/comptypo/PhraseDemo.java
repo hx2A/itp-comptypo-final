@@ -1,5 +1,6 @@
 package itp.comptypo;
 
+import itp.comptypo.HolidayAnimator.SnowPile;
 import processing.core.PApplet;
 
 public class PhraseDemo extends HolidayAnimator {
@@ -27,6 +28,8 @@ public class PhraseDemo extends HolidayAnimator {
 
     public void addSprites(float t) {
         if (t == 0) {
+            shapes.add(new SnowPile(0, 150, 0.1f, 0.3f));
+            shapes.add(new SnowPile(50, -200, -0.2f, 0.35f));
             shapes.add(new Phrase(PHRASE1, PHRASE1_X_OFFSETS,
                     PHRASE1_Y_OFFSETS));
         }
