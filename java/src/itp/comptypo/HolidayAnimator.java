@@ -19,7 +19,6 @@ public abstract class HolidayAnimator extends PApplet {
     private int w;
     private int h;
     private int t;
-    private int dt;
 
     private PApplet p;
 
@@ -42,21 +41,12 @@ public abstract class HolidayAnimator extends PApplet {
     List<Shape> shapes;
 
     public HolidayAnimator(String charactersToLoad) {
-        this(true, charactersToLoad, 1);
-    }
-
-    public HolidayAnimator(String charactersToLoad, int dt) {
-        this(true, charactersToLoad, dt);
+        this(true, charactersToLoad);
     }
 
     public HolidayAnimator(boolean reducedSize, String charactersToLoad) {
-        this(reducedSize, charactersToLoad, 1);
-    }
-
-    public HolidayAnimator(boolean reducedSize, String charactersToLoad, int dt) {
         this.p = this;
         this.charactersToLoad = charactersToLoad;
-        this.dt = dt;
 
         if (reducedSize) {
             sizeFactor = 0.75f; // 0.8f;
@@ -134,7 +124,7 @@ public abstract class HolidayAnimator extends PApplet {
             loadFontPathData();
             initExtras();
         } else {
-            t += dt;
+            t++;
         }
 
         addSprites(t);
@@ -182,16 +172,16 @@ public abstract class HolidayAnimator extends PApplet {
         protected PVector flakeMovement(PVector pos) {
             PVector movement = new PVector();
 
-            movement.x = (30f * dt * sizeFactor)
+            movement.x = (30f * sizeFactor)
                     * (noise(sizeFactor * pos.x / X_NOISE_SCALING + xSalt,
                             sizeFactor * pos.y / X_NOISE_SCALING + ySalt, t
                                     / X_NOISE_SCALING) - 0.5f);
-            movement.y = (-1f * dt * sizeFactor)
-                    - (6f * dt * sizeFactor)
+            movement.y = (-1f * sizeFactor)
+                    - (6f * sizeFactor)
                     * noise(sizeFactor * pos.x / Y_NOISE_SCALING + xSalt,
                             sizeFactor * pos.y / Y_NOISE_SCALING + ySalt, t
                                     / Y_NOISE_SCALING + 1000);
-            movement.z = (10f * dt * sizeFactor)
+            movement.z = (10f * sizeFactor)
                     * (noise(sizeFactor * pos.x / Z_NOISE_SCALING + xSalt,
                             sizeFactor * pos.y / Z_NOISE_SCALING + ySalt, t
                                     / Z_NOISE_SCALING) - 0.5f);
@@ -200,10 +190,10 @@ public abstract class HolidayAnimator extends PApplet {
         }
 
         protected float flakeRotation(PVector pos) {
-            return (0.3f * dt)
-                    * (noise(sizeFactor * pos.x / RAD_NOISE_SCALING + xSalt,
-                            sizeFactor * pos.y / RAD_NOISE_SCALING + ySalt, t
-                                    / RAD_NOISE_SCALING) - 0.5f);
+            return 0.3f * (noise(
+                    sizeFactor * pos.x / RAD_NOISE_SCALING + xSalt, sizeFactor
+                            * pos.y / RAD_NOISE_SCALING + ySalt, t
+                            / RAD_NOISE_SCALING) - 0.5f);
         }
 
         public void draw(JSONArray paths, JSONObject stats) {
@@ -391,15 +381,21 @@ public abstract class HolidayAnimator extends PApplet {
 
     protected class Phrase extends Shape {
         private List<Letter> letters;
+        private float moveSpeed;
+        private boolean animate;
+        private boolean pause;
+        private int pauseCountdown;
 
         public Phrase(String phrase, int[] xOffsets, int[] yOffsets) {
-            this(phrase, xOffsets, yOffsets, (int) (1.1f * height));
+            this(phrase, xOffsets, yOffsets, (int) (1.1f * height), 2f);
         }
 
-        public Phrase(String phrase, int[] xOffsets, int[] yOffsets, int yStart) {
-            alive = true;
-
+        public Phrase(String phrase, int[] xOffsets, int[] yOffsets,
+                int yStart, float startSpeed) {
             pos = new PVector(width / 2, yStart, 0);
+            moveSpeed = startSpeed;
+            animate = startSpeed != 0f;
+            pause = false;
 
             letters = new ArrayList<Letter>();
             for (int i = 0; i < phrase.length(); i++) {
@@ -417,10 +413,22 @@ public abstract class HolidayAnimator extends PApplet {
         }
 
         public void update() {
-            if (pos.y < LETTER_DISBAND_LEVEL * height) {
-                disband();
-            } else {
-                pos.y += -2f * dt * sizeFactor;
+            if (animate) {
+                if (!pause && pos.y < LETTER_DISBAND_LEVEL * height) {
+                    moveSpeed -= 0.05;
+                }
+                if (moveSpeed < 0) {
+                    moveSpeed = 0;
+                    pause = true;
+                    pauseCountdown = 30;
+                }
+                if (pause) {
+                    pauseCountdown--;
+                    if (pauseCountdown < 0) {
+                        disband();
+                    }
+                }
+                pos.y += -moveSpeed * sizeFactor;
             }
 
             for (Letter letter : letters) {

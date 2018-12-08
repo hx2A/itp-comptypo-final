@@ -22,7 +22,7 @@ public class PhraseKerningCalibration extends HolidayAnimator {
     }
 
     public PhraseKerningCalibration() {
-        super(true, "Hapyoli.ds", 0);
+        super(true, "Hapyoli.ds");
     }
 
     @Override
@@ -42,7 +42,7 @@ public class PhraseKerningCalibration extends HolidayAnimator {
     public void addSprites(float t) {
         if (t == 0) {
             shapes.add(new Phrase(PHRASE1, PHRASE1_X_OFFSETS,
-                    PHRASE1_Y_OFFSETS, (int) (0.8f * height)));
+                    PHRASE1_Y_OFFSETS, (int) (0.8f * height), 0));
         }
     }
 }
