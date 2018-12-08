@@ -66,9 +66,9 @@ public abstract class HolidayAnimator extends PApplet {
         t = 0;
 
         Camera3D camera3D = new Camera3D(this);
-        // camera3D.renderRegular();
+        camera3D.renderRegular();
         camera3D.reportStats();
-        camera3D.renderDuboisRedCyanAnaglyph().setDivergence(1f);
+        // camera3D.renderDuboisRedCyanAnaglyph().setDivergence(1f);
         camera3D.setBackgroundColor(backgroundColor);
         frameRate(30);
 
@@ -357,8 +357,13 @@ public abstract class HolidayAnimator extends PApplet {
         private int state;
 
         public Letter(char c, float xOffset, float yOffset, float zOffset) {
+            this(c, xOffset, yOffset, zOffset, (int) 1.1f * height);
+        }
+
+        public Letter(char c, float xOffset, float yOffset, float zOffset,
+                int yStart) {
             offset = new PVector(xOffset, yOffset, zOffset);
-            pos = new PVector(width / 2, 1.1f * height, 0);
+            pos = new PVector(width / 2, yStart, 0);
             scale = 1.5f;
             state = 0;
 
