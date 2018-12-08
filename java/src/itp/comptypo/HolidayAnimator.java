@@ -32,9 +32,9 @@ public abstract class HolidayAnimator extends PApplet {
     private static final float Y_NOISE_SCALING = 400;
     private static final float Z_NOISE_SCALING = 400;
     private static final float RAD_NOISE_SCALING = 400;
-    private static final float LETTER_DISBAND_LEVEL = 0.68f;
+    private static final float LETTER_DISBAND_LEVEL = 0.7f;
 
-    private static final float SNOW_PILE_MOVE_SPEED = 5f;
+    private static final float SNOW_PILE_MOVE_SPEED = 7f;
     private static final float SNOW_PILE_MOVE_SCALE = 3f;
 
     List<Shape> shapes;
@@ -66,9 +66,8 @@ public abstract class HolidayAnimator extends PApplet {
         t = 0;
 
         Camera3D camera3D = new Camera3D(this);
-        camera3D.renderRegular();
-        camera3D.reportStats();
-        // camera3D.renderDuboisRedCyanAnaglyph().setDivergence(1f);
+//        camera3D.renderRegular();
+         camera3D.renderDuboisRedCyanAnaglyph().setDivergence(1f);
         camera3D.setBackgroundColor(backgroundColor);
         frameRate(30);
 
@@ -406,7 +405,7 @@ public abstract class HolidayAnimator extends PApplet {
         private int fadeTime;
 
         public Phrase(String phrase, int[] xOffsets, int[] yOffsets) {
-            this(phrase, xOffsets, yOffsets, (int) (1.1f * height), 2f,
+            this(phrase, xOffsets, yOffsets, (int) (1.1f * height), 2.5f,
                     Integer.MAX_VALUE);
         }
 
@@ -421,8 +420,8 @@ public abstract class HolidayAnimator extends PApplet {
             letters = new ArrayList<Letter>();
             for (int i = 0; i < phrase.length(); i++) {
                 letters.add(new Letter(phrase.charAt(i), xOffsets[i],
-                        yOffsets[i], 0));
-//                        20 * (i / ((float) phrase.length()) - 0.5f)));
+                        yOffsets[i],
+                        80 * (i / ((float) phrase.length()) - 0.5f)));
             }
         }
 
