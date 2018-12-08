@@ -9,8 +9,13 @@ let snowflakeFont;
 let boundingBox;
 let twoSolids;
 
-let letters = "Hapyolids.";
-
+// The P5 web editor is unhappy with me if I try to download ~500 MB of JSON
+// files at the same time so I need to break this up into smaller jobs.
+// let letters = "CFHMNYadehiklmnoprstuvwyz-."
+let letters = "CFHMNY"
+// let letters = "adehikl"
+// let letters = "mnoprst"
+// let letters = "uvwyz-."
 
 // ***********************************************************
 // Thanks to Allison Parrish for the following two functions!
@@ -109,6 +114,8 @@ function constructCharacterMorphs(character) {
   // first get the path for the selected character
   if (character == '.') {
     normalPath = normalFont.getPath('i', 0, 0, 100);
+  } else if (character == '-') {
+    normalPath = normalFont.getPath('F', 0, 0, 100);
   } else {
     normalPath = normalFont.getPath(character, 0, 0, 100);
   }
@@ -121,6 +128,13 @@ function constructCharacterMorphs(character) {
   } else if (character == '.') {
     normalStrings = [normalStrings[1]];
     snowflakeSize = 60;
+  } else if (character == 'F') {
+    normalStrings = [normalStrings[1]];
+  } else if (character == '-') {
+    normalStrings = [normalStrings[0]];
+    snowflakeSize = 120;
+  } else if (character == 'M') {
+    normalStrings = [normalStrings[0]];
   }
 
   // what is the list of snowflakes that are suitable for this character?
