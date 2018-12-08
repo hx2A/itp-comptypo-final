@@ -421,8 +421,8 @@ public abstract class HolidayAnimator extends PApplet {
             letters = new ArrayList<Letter>();
             for (int i = 0; i < phrase.length(); i++) {
                 letters.add(new Letter(phrase.charAt(i), xOffsets[i],
-                        yOffsets[i],
-                        20 * (i / ((float) phrase.length()) - 0.5f)));
+                        yOffsets[i], 0));
+//                        20 * (i / ((float) phrase.length()) - 0.5f)));
             }
         }
 
