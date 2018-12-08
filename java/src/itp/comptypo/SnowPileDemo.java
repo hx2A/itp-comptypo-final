@@ -10,12 +10,13 @@ public class SnowPileDemo extends HolidayAnimator {
     }
 
     public SnowPileDemo() {
-        super("y");
+        super(true, "y");
     }
 
     public void addSprites(float t) {
         if (t == 0) {
-            shapes.add(new SnowPile(0, 20, 0.1f, 0.3f));
+            int[] moveTimes = new int[] { 250, 500, 1000 };
+            shapes.add(new SnowPile(0, 20, 0.1f, 0.3f, moveTimes));
         }
     }
 }

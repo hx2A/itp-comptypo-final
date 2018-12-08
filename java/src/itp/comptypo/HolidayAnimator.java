@@ -36,6 +36,9 @@ public abstract class HolidayAnimator extends PApplet {
     private static final float RAD_NOISE_SCALING = 400;
     private static final float LETTER_DISBAND_LEVEL = 0.68f;
 
+    private static final float SNOW_PILE_MOVE_SPEED = 5f;
+    private static final float SNOW_PILE_MOVE_SCALE = 3f;
+
     List<Shape> shapes;
 
     public HolidayAnimator(String charactersToLoad) {
@@ -50,8 +53,7 @@ public abstract class HolidayAnimator extends PApplet {
         this(reducedSize, charactersToLoad, 1);
     }
 
-    public HolidayAnimator(boolean reducedSize, String charactersToLoad,
-            int dt) {
+    public HolidayAnimator(boolean reducedSize, String charactersToLoad, int dt) {
         this.p = this;
         this.charactersToLoad = charactersToLoad;
         this.dt = dt;
@@ -76,9 +78,9 @@ public abstract class HolidayAnimator extends PApplet {
         t = 0;
 
         Camera3D camera3D = new Camera3D(this);
-//        camera3D.renderRegular();
+        // camera3D.renderRegular();
         camera3D.reportStats();
-         camera3D.renderDuboisRedCyanAnaglyph().setDivergence(1f);
+        camera3D.renderDuboisRedCyanAnaglyph().setDivergence(1f);
         camera3D.setBackgroundColor(backgroundColor);
         frameRate(30);
 
@@ -256,16 +258,32 @@ public abstract class HolidayAnimator extends PApplet {
 
         private float bumpPosition;
         private float bumpHeight;
-        
-        public SnowPile(float yPos, float zPos, float bumpPosition, float bumpHeight) {
+        private int[] moveTimes;
+
+        public SnowPile(float yPos, float zPos, float bumpPosition,
+                float bumpHeight, int[] moveTimes) {
             this.bumpPosition = bumpPosition;
             this.bumpHeight = bumpHeight;
+            this.moveTimes = moveTimes;
             pos = new PVector(width / 2, yPos + height, zPos);
             scale = 0.9f;
         }
 
-        public void update() {
+        private float delta_sigmoid(float x, int offset) {
+            float y = (x - offset) / SNOW_PILE_MOVE_SPEED;
+            float z = PApplet.exp(y) / (PApplet.exp(y) + 1);
 
+            if (Float.isNaN(z)) {
+                return 0;
+            } else {
+                return z * (1 - z);
+            }
+        }
+
+        public void update() {
+            for (int i = 0; i < moveTimes.length; i++) {
+                pos.y += SNOW_PILE_MOVE_SCALE * delta_sigmoid(t, moveTimes[i]);
+            }
         }
 
         public void draw() {
@@ -399,15 +417,15 @@ public abstract class HolidayAnimator extends PApplet {
         }
 
         public void update() {
-            pos.y += -2f * dt * sizeFactor;
+            if (pos.y < LETTER_DISBAND_LEVEL * height) {
+                disband();
+            } else {
+                pos.y += -2f * dt * sizeFactor;
+            }
 
             for (Letter letter : letters) {
                 letter.pos = PVector.add(pos,
                         PVector.mult(letter.offset, sizeFactor));
-            }
-
-            if (pos.y < LETTER_DISBAND_LEVEL * height) {
-                disband();
             }
         }
 
