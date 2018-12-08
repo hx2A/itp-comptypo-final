@@ -13,7 +13,7 @@ public class LetterDemo extends HolidayAnimator {
         super("y");
     }
 
-    public void addSprites(int t) {
+    public void addSprites(float t) {
         if (t == 0) {
             shapes.add(new Letter('y', 0, 0, 0));
         }

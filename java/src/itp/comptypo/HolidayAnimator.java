@@ -18,7 +18,7 @@ public abstract class HolidayAnimator extends PApplet {
     protected float sizeFactor;
     private int w;
     private int h;
-    private int t;
+    private float t;
     private float dt;
 
     private PApplet p;
@@ -42,7 +42,7 @@ public abstract class HolidayAnimator extends PApplet {
         this(true, charactersToLoad, 1);
     }
 
-    public HolidayAnimator(String charactersToLoad, int dt) {
+    public HolidayAnimator(String charactersToLoad, float dt) {
         this(true, charactersToLoad, dt);
     }
 
@@ -50,7 +50,7 @@ public abstract class HolidayAnimator extends PApplet {
         this(reducedSize, charactersToLoad, 1);
     }
 
-    public HolidayAnimator(boolean reducedSize, String charactersToLoad, int dt) {
+    public HolidayAnimator(boolean reducedSize, String charactersToLoad, float dt) {
         this.p = this;
         this.charactersToLoad = charactersToLoad;
         this.dt = dt;
@@ -75,9 +75,9 @@ public abstract class HolidayAnimator extends PApplet {
         t = 0;
 
         Camera3D camera3D = new Camera3D(this);
-        camera3D.renderRegular();
+        // camera3D.renderRegular();
         camera3D.reportStats();
-        // camera3D.renderDuboisRedCyanAnaglyph().setDivergence(1f);
+        camera3D.renderDuboisRedCyanAnaglyph().setDivergence(1f);
         camera3D.setBackgroundColor(backgroundColor);
         frameRate(30);
 
@@ -114,7 +114,7 @@ public abstract class HolidayAnimator extends PApplet {
         }
     }
 
-    public abstract void addSprites(int t);
+    public abstract void addSprites(float t);
 
     public void initExtras() {
 
@@ -143,11 +143,12 @@ public abstract class HolidayAnimator extends PApplet {
         for (int i = 0; i < shapes.size(); i++) {
             shapes.get(i).update();
         }
-        
+
         Collections.sort(shapes);
     }
 
     public void draw() {
+        System.out.println("Drawing " + shapes.size() + " shapes");
         for (Shape s : shapes) {
             s.draw();
         }
@@ -209,23 +210,33 @@ public abstract class HolidayAnimator extends PApplet {
             p.scale(scale * sizeFactor);
             p.translate(-getJSONFloatVal(stats, "centerX"),
                     -getJSONFloatVal(stats, "centerY"), 0);
-            for (int i = 0; i < paths.size(); i++) {
-                if (i == 0) {
-                    p.fill(fillColor);
-                } else {
-                    p.fill(backgroundColor);
-                }
-                p.beginShape();
-                JSONArray path = getJSONArray(paths, i);
-                for (int j = 0; j < path.size(); j++) {
-                    int[] coords = getJSONArray(path, j).getIntArray();
+
+            p.beginShape();
+
+            // draw the outer path
+            JSONArray path = getJSONArray(paths, 0);
+            for (int j = 0; j < path.size(); j++) {
+                int[] coords = getJSONArray(path, j).getIntArray();
+                p.vertex(coords[0], coords[1], 0);
+            }
+            // loop back to beginning
+            int[] coords = getJSONArray(path, 0).getIntArray();
+            p.vertex(coords[0], coords[1], 0);
+
+            // if there is a second path this is a contour
+            if (paths.size() == 2) {
+                p.beginContour();
+                path = getJSONArray(paths, 1);
+                for (int j = path.size() - 1; j >= 0; j--) {
+                    coords = getJSONArray(path, j).getIntArray();
                     p.vertex(coords[0], coords[1], 0);
                 }
                 // loop back to beginning
-                int[] coords = getJSONArray(path, 0).getIntArray();
+                coords = getJSONArray(path, path.size() - 1).getIntArray();
                 p.vertex(coords[0], coords[1], 0);
-                p.endShape();
+                p.endContour();
             }
+            p.endShape();
             p.popMatrix();
         }
 
@@ -329,9 +340,8 @@ public abstract class HolidayAnimator extends PApplet {
             letters = new ArrayList<Letter>();
             for (int i = 0; i < phrase.length(); i++) {
                 letters.add(new Letter(phrase.charAt(i), xOffsets[i],
-                        yOffsets[i], -i / 100f));
+                        yOffsets[i], 20 * (i / ((float) phrase.length()) - 0.5f)));
             }
-            Collections.sort(letters);
         }
 
         private void disband() {
@@ -355,6 +365,8 @@ public abstract class HolidayAnimator extends PApplet {
         }
 
         public void draw() {
+            Collections.sort(letters);
+
             for (Letter letter : letters) {
                 letter.draw();
             }

@@ -25,7 +25,7 @@ public class PhraseDemo extends HolidayAnimator {
         super(true, "Hapyoli.ds");
     }
 
-    public void addSprites(int t) {
+    public void addSprites(float t) {
         if (t == 0) {
             shapes.add(new Phrase(PHRASE1, PHRASE1_X_OFFSETS,
                     PHRASE1_Y_OFFSETS));
