@@ -18,8 +18,8 @@ public abstract class HolidayAnimator extends PApplet {
     protected float sizeFactor;
     private int w;
     private int h;
-    private float t;
-    private float dt;
+    private int t;
+    private int dt;
 
     private PApplet p;
 
@@ -34,7 +34,7 @@ public abstract class HolidayAnimator extends PApplet {
     private static final float Y_NOISE_SCALING = 400;
     private static final float Z_NOISE_SCALING = 400;
     private static final float RAD_NOISE_SCALING = 400;
-    private static final float LETTER_DISBAND_LEVEL = 0.75f;
+    private static final float LETTER_DISBAND_LEVEL = 0.68f;
 
     List<Shape> shapes;
 
@@ -42,7 +42,7 @@ public abstract class HolidayAnimator extends PApplet {
         this(true, charactersToLoad, 1);
     }
 
-    public HolidayAnimator(String charactersToLoad, float dt) {
+    public HolidayAnimator(String charactersToLoad, int dt) {
         this(true, charactersToLoad, dt);
     }
 
@@ -51,7 +51,7 @@ public abstract class HolidayAnimator extends PApplet {
     }
 
     public HolidayAnimator(boolean reducedSize, String charactersToLoad,
-            float dt) {
+            int dt) {
         this.p = this;
         this.charactersToLoad = charactersToLoad;
         this.dt = dt;
@@ -399,7 +399,7 @@ public abstract class HolidayAnimator extends PApplet {
         }
 
         public void update() {
-            pos.y += -2 * dt * sizeFactor;
+            pos.y += -2f * dt * sizeFactor;
 
             for (Letter letter : letters) {
                 letter.pos = PVector.add(pos,

@@ -1,6 +1,5 @@
 package itp.comptypo;
 
-import itp.comptypo.HolidayAnimator.SnowPile;
 import processing.core.PApplet;
 
 public class PhraseDemo extends HolidayAnimator {
