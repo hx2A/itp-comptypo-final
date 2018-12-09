@@ -122,6 +122,6 @@ public class SequencedAnimation extends HolidayAnimator {
     }
 
     public void postDraw() {
-        saveFrame("/local/tmp/happy_holidays1/regular/happy_holidays_#####.png");
+        saveFrame("/local/tmp/happy_holidays1/anaglyph/happy_holidays_#####.png");
     }
 }

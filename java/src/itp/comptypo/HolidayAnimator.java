@@ -354,6 +354,7 @@ public abstract class HolidayAnimator extends PApplet {
         private JSONObject morphData;
         protected PVector offset;
         private int state;
+        private float easing;
 
         public Letter(char c, float xOffset, float yOffset, float zOffset) {
             this(c, xOffset, yOffset, zOffset, (int) 1.1f * height);
@@ -365,6 +366,7 @@ public abstract class HolidayAnimator extends PApplet {
             pos = new PVector(width / 2, yStart, 0);
             scale = 1.5f;
             state = 0;
+            easing = 0.01f;
 
             // pick a random snowflake to morph into
             JSONObject charData = getJSONObj(fontPathData, "" + c);
@@ -378,8 +380,9 @@ public abstract class HolidayAnimator extends PApplet {
 
         public void update() {
             state = min(state + 2, 100);
-            pos.add(flakeMovement(pos));
-            rads += flakeRotation(pos);
+            pos.add(flakeMovement(pos).mult(easing));
+            rads += easing * flakeRotation(pos);
+            easing = min(2 * easing, 1);
 
             if (pos.y < -500) {
                 alive = false;
