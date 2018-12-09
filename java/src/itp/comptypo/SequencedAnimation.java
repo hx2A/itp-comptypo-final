@@ -51,7 +51,7 @@ public class SequencedAnimation extends HolidayAnimator {
     }
 
     public SequencedAnimation() {
-        super(true, "CFHMNYadehiklmnoprstuvwyz.-");
+        super(false, "CFHMNYadehiklmnoprstuvwyz.-");
     }
 
     public void addSprites(float t) {
@@ -59,14 +59,14 @@ public class SequencedAnimation extends HolidayAnimator {
 
         if (t == 0) {
             int[] moveTimes1 = new int[] { 29 * FRAME_RATE, 59 * FRAME_RATE };
-            shapes.add(new SnowPile(-10, 150, -0.15f, 0.30f, moveTimes1));
+            shapes.add(new SnowPile(80, 150, -0.15f, 0.30f, moveTimes1));
 
             int[] moveTimes2 = new int[] { 14 * FRAME_RATE, 44 * FRAME_RATE,
                     74 * FRAME_RATE, 89 * FRAME_RATE, 104 * FRAME_RATE };
-            shapes.add(new SnowPile(50, -200, 0.1f, 0.35f, moveTimes2));
+            shapes.add(new SnowPile(100, -200, 0.1f, 0.35f, moveTimes2));
 
             shapes.add(new Phrase(HH_PHRASE, HH_X_OFFSETS, HH_Y_OFFSETS,
-                    (int) (0.7f * height), 0, FRAME_RATE * 10));
+                    (int) (0.5f * height), 0, FRAME_RATE * 10));
         }
 
         if (t > 10 * FRAME_RATE && t < 110 * FRAME_RATE) {
@@ -119,5 +119,9 @@ public class SequencedAnimation extends HolidayAnimator {
         if (t == 126 * FRAME_RATE) {
             exit();
         }
+    }
+
+    public void postDraw() {
+        saveFrame("/local/tmp/happy_holidays1/regular/happy_holidays_#####.png");
     }
 }
