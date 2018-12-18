@@ -66,8 +66,8 @@ public abstract class HolidayAnimator extends PApplet {
         t = 0;
 
         Camera3D camera3D = new Camera3D(this);
-//        camera3D.renderRegular();
-         camera3D.renderDuboisRedCyanAnaglyph().setDivergence(1f);
+         camera3D.renderRegular();
+//        camera3D.renderDuboisRedCyanAnaglyph().setDivergence(1.25f);
         camera3D.setBackgroundColor(backgroundColor);
         frameRate(30);
 
@@ -134,6 +134,11 @@ public abstract class HolidayAnimator extends PApplet {
     }
 
     public void draw() {
+        translate(0, 0, -150);
+        translate(width / 2, height / 2, 0);
+        scale(1.1f, 1.1f, 1f);
+        translate(-width / 2, -height / 2, 0);
+
         for (Shape s : shapes) {
             s.draw();
         }
@@ -160,7 +165,7 @@ public abstract class HolidayAnimator extends PApplet {
 
             fillColor = color(192);
             strokeColor = color(0);
-            alpha = 128;
+            alpha = 192;
         }
 
         public abstract void update();
@@ -455,7 +460,7 @@ public abstract class HolidayAnimator extends PApplet {
             }
 
             if (t > fadeTime) {
-                alpha -= 2;
+                alpha -= 3;
                 if (alpha < 0) {
                     alive = false;
                 }
